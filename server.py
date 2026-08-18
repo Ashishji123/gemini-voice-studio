@@ -17,6 +17,8 @@ OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+STATIC_DIR = Path("static")
+STATIC_DIR.mkdir(parents=True, exist_ok=True)
 
 studio = GeminiVoiceStudio()
 
@@ -52,56 +54,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-def generate_voice(
-    text: str,
-    voice: str = "Charon",
-    tone: str = "Excited Indian tech YouTuber. Natural human delivery.",
-    language: str = "Hindi"
-) -> str:
-    """Generate high-quality voiceover audio in Hindi, Hinglish, or English with direct download links."""
-    tone_str = TONE_PRESETS.get(tone, tone)
-    res = studio.generate_speech(
-        text=text,
-        voice_name=voice,
-        tone_instruction=tone_str,
-        language=language
-    )
-    fn_wav = res["filename_wav"]
-    fn_mp3 = res["filename_mp3"]
-    return json.dumps({
-        "status": "success",
-        "duration_seconds": res["duration_seconds"],
-        "voice": res["voice"],
-        "download_link_wav": f"{PUBLIC_BASE_URL}/output/{fn_wav}",
-        "download_link_mp3": f"{PUBLIC_BASE_URL}/output/{fn_mp3}",
-        "save_to_drive_instruction": f"Click to download and save directly to Google Drive: {PUBLIC_BASE_URL}/output/{fn_mp3}"
-    }, indent=2)
-
-@mcp_server.tool()
-def generate_voice_parts(
-    scenes_json: str,
-    default_voice: str = "Charon",
-    master_name: str = "master_voiceover"
-) -> str:
-    """Generate scene-by-scene voiceovers and master track with direct download links for each scene."""
-    scenes_data = json.loads(scenes_json)
-    res = studio.generate_scene_timeline(
-        scenes=scenes_data,
-        default_voice=default_voice,
-        merge_master=True,
-        master_name=master_name
-    )
-    for sc in res["scenes"]:
-        sc["download_wav_url"] = f"{PUBLIC_BASE_URL}/output/{sc['filename_wav']}"
-        sc["download_mp3_url"] = f"{PUBLIC_BASE_URL}/output/{sc['filename_mp3']}"
-    if res.get("master_audio"):
-        res["master_audio"]["download_master_wav_url"] = f"{PUBLIC_BASE_URL}/output/{master_name}.wav"
-        res["master_audio"]["download_master_mp3_url"] = f"{PUBLIC_BASE_URL}/output/{master_name}.mp3"
-    return json.dumps(res, indent=2, ensure_ascii=False)
-
-app.mount("/mcp", mcp_server.streamable_http_app())
-app.mount("/sse", mcp_server.sse_app())
 
 # ----------------- REST Models & Endpoints -----------------
 class SingleGenerateRequest(BaseModel):
@@ -336,8 +288,18 @@ def delete_file(filename: str):
     raise HTTPException(status_code=404, detail="File not found")
 
 # Static files
-app.mount("/output", StaticFiles(directory="output"), name="output")
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")
+if (STATIC_DIR / "index.html").exists():
+    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+else:
+    @app.get("/")
+    def root():
+        return {
+            "name": "Gemini Voice Studio API",
+            "status": "online",
+            "docs": "/docs",
+            "chatgpt_schema": "/chatgpt-schema"
+        }
 
 if __name__ == "__main__":
     import uvicorn
