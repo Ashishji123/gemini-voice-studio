@@ -1,0 +1,646 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ChatGPT Gemini Media Studio Actions",
+    "description": "Control Charon/Gemini voice generation and FFmpeg video editing directly from a custom GPT.",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://YOUR-HTTPS-ADDRESS"
+    }
+  ],
+  "paths": {
+    "/api/generate": {
+      "post": {
+        "operationId": "generateSingleAudio",
+        "summary": "Generate Charon voice audio",
+        "description": "Generate a downloadable MP3/WAV voiceover. Use Charon unless the user asks for another voice.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "voice": {
+                    "type": "string",
+                    "default": "Charon"
+                  },
+                  "tone": {
+                    "type": "string"
+                  },
+                  "language": {
+                    "type": "string",
+                    "default": "Hindi"
+                  },
+                  "filename": {
+                    "type": "string"
+                  },
+                  "save_to_drive": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "drive_folder_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/youtube-voiceover": {
+      "post": {
+        "operationId": "createYouTubeVideoVoiceover",
+        "summary": "Create a YouTube video with scene-timed voiceover",
+        "description": "Generate Charon voice for each scene, place each voice layer at its timestamp, mix with the original video audio, export MP4, and optionally save to Drive.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "video_filename": {
+                    "type": "string"
+                  },
+                  "scenes": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Scene"
+                    },
+                    "minItems": 1
+                  },
+                  "default_voice": {
+                    "type": "string",
+                    "default": "Charon"
+                  },
+                  "original_audio_volume": {
+                    "type": "number",
+                    "default": 0.18
+                  },
+                  "output_name": {
+                    "type": "string",
+                    "default": "youtube_voiceover_final.mp4"
+                  },
+                  "save_to_drive": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "drive_folder_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "video_filename",
+                  "scenes"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/render-video": {
+      "post": {
+        "operationId": "renderVideoWithAudioLayers",
+        "summary": "Render video with voice, music, or sound layers",
+        "description": "Mix generated voice layers and/or existing audio layers over a base video and export MP4.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "video_filename": {
+                    "type": "string"
+                  },
+                  "voice_layers": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AudioLayer"
+                    }
+                  },
+                  "audio_layers": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AudioLayer"
+                    }
+                  },
+                  "original_audio_volume": {
+                    "type": "number",
+                    "default": 0.18
+                  },
+                  "video_start_seconds": {
+                    "type": "number",
+                    "default": 0
+                  },
+                  "video_end_seconds": {
+                    "type": "number"
+                  },
+                  "output_name": {
+                    "type": "string",
+                    "default": "final_youtube_video.mp4"
+                  },
+                  "save_to_drive": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "drive_folder_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "video_filename"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/import-url": {
+      "post": {
+        "operationId": "importMediaFromUrl",
+        "summary": "Import media from an HTTPS URL",
+        "description": "Download a video/audio/image/subtitle file into the server media library.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "filename": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/import-chatgpt-files": {
+      "post": {
+        "operationId": "importChatGPTFiles",
+        "summary": "Import files attached in the GPT conversation",
+        "description": "Accept ChatGPT's openaiFileIdRefs file-reference objects when the Actions runtime provides externally downloadable links. If not available, use Drive or HTTPS URL import.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "openaiFileIdRefs": {
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "mime_type": {
+                              "type": "string"
+                            },
+                            "download_link": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "openaiFileIdRefs"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/search-drive": {
+      "post": {
+        "operationId": "searchGoogleDriveMedia",
+        "summary": "Search Google Drive media",
+        "description": "Search the configured Google Drive account/folder by filename so ChatGPT can find a video or audio file before importing it.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name_contains": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "folder_id": {
+                    "type": "string"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "default": 25,
+                    "minimum": 1,
+                    "maximum": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/import-drive": {
+      "post": {
+        "operationId": "importGoogleDriveFile",
+        "summary": "Import a media file from Google Drive",
+        "description": "Download a Drive file using the server's configured service account. The file or parent folder must be shared with that service account.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file_id": {
+                    "type": "string"
+                  },
+                  "filename": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file_id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/save-drive": {
+      "post": {
+        "operationId": "saveMediaToGoogleDrive",
+        "summary": "Save generated media to Google Drive",
+        "description": "Upload an existing server-side generated audio/video file into the configured Drive folder.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string"
+                  },
+                  "folder_id": {
+                    "type": "string"
+                  },
+                  "drive_filename": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "filename"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/trim-video": {
+      "post": {
+        "operationId": "trimVideo",
+        "summary": "Trim a video",
+        "description": "Create a new MP4 from a selected time range.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "video_filename": {
+                    "type": "string"
+                  },
+                  "start_seconds": {
+                    "type": "number",
+                    "default": 0
+                  },
+                  "end_seconds": {
+                    "type": "number"
+                  },
+                  "output_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "video_filename"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/extract-audio": {
+      "post": {
+        "operationId": "extractAudio",
+        "summary": "Extract audio from media",
+        "description": "Extract the audio track from a video/audio file into MP3.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "media_filename": {
+                    "type": "string"
+                  },
+                  "output_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "media_filename"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    },
+    "/api/concat-videos": {
+      "post": {
+        "operationId": "concatVideos",
+        "summary": "Join multiple videos",
+        "description": "Normalize and concatenate multiple videos into one MP4.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "video_filenames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 2
+                  },
+                  "output_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "video_filenames"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Generation or media processing error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Scene": {
+        "type": "object",
+        "properties": {
+          "start_seconds": {
+            "type": "number",
+            "description": "Voice start time on the video timeline."
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Alternative start time such as 00:35."
+          },
+          "text": {
+            "type": "string"
+          },
+          "voice": {
+            "type": "string",
+            "default": "Charon"
+          },
+          "tone": {
+            "type": "string",
+            "description": "Natural-language delivery direction or preset."
+          },
+          "language": {
+            "type": "string",
+            "default": "Hindi"
+          },
+          "volume": {
+            "type": "number",
+            "default": 1.0
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "AudioLayer": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Existing server-side audio filename."
+          },
+          "text": {
+            "type": "string",
+            "description": "If provided, generate this text as speech before mixing."
+          },
+          "voice": {
+            "type": "string",
+            "default": "Charon"
+          },
+          "tone": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string",
+            "default": "Hindi"
+          },
+          "start_seconds": {
+            "type": "number",
+            "default": 0
+          },
+          "trim_start_seconds": {
+            "type": "number",
+            "default": 0
+          },
+          "trim_end_seconds": {
+            "type": "number"
+          },
+          "volume": {
+            "type": "number",
+            "default": 1
+          },
+          "speed": {
+            "type": "number",
+            "default": 1
+          },
+          "fade_in_seconds": {
+            "type": "number",
+            "default": 0
+          },
+          "fade_out_seconds": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    }
+  }
+}
