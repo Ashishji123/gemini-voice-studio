@@ -1,0 +1,170 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Gemini Hindi Voice Generator",
+    "description": "Generate Hindi voiceover audio clips using Google Gemini TTS with Charon voice. Files are saved to PC and Google Drive automatically.",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://offers-printable-gas-librarian.trycloudflare.com"
+    }
+  ],
+  "paths": {
+    "/api/status": {
+      "get": {
+        "operationId": "checkStatus",
+        "summary": "Check if the voice generator is online",
+        "responses": {
+          "200": {
+            "description": "Server status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "default_voice": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/generate": {
+      "post": {
+        "operationId": "generateVoice",
+        "summary": "Generate a Hindi voiceover audio file with Charon voice",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "The Hindi or Hinglish text to speak"
+                  },
+                  "voice": {
+                    "type": "string",
+                    "default": "Charon",
+                    "description": "Voice name. Use Charon by default."
+                  },
+                  "tone": {
+                    "type": "string",
+                    "default": "Excited Indian tech YouTuber",
+                    "description": "Tone or style instruction for the voice"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audio generated successfully. Returns download links for WAV and MP3 files.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "filename_wav": { "type": "string" },
+                        "filename_mp3": { "type": "string" },
+                        "duration_seconds": { "type": "number" },
+                        "voice": { "type": "string" },
+                        "download_url_wav": { "type": "string", "description": "Direct download link for WAV file" },
+                        "download_url_mp3": { "type": "string", "description": "Direct download link for MP3 file" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/generate-timeline": {
+      "post": {
+        "operationId": "generateTimeline",
+        "summary": "Generate multiple scene voiceovers and a merged master track",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["scenes"],
+                "properties": {
+                  "scenes": {
+                    "type": "array",
+                    "description": "Array of scene objects with text, name, tone",
+                    "items": {
+                      "type": "object",
+                      "required": ["text"],
+                      "properties": {
+                        "name": { "type": "string", "description": "Scene name like hook, intro, verdict" },
+                        "text": { "type": "string", "description": "The Hindi text for this scene" },
+                        "tone": { "type": "string", "description": "Tone for this scene" },
+                        "timestamp": { "type": "string", "description": "Video timestamp like 0:00" }
+                      }
+                    }
+                  },
+                  "default_voice": { "type": "string", "default": "Charon" },
+                  "master_name": { "type": "string", "default": "master_voiceover" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "All scene clips and master track generated with download links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "scenes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "scene_name": { "type": "string" },
+                          "filename_wav": { "type": "string" },
+                          "filename_mp3": { "type": "string" },
+                          "duration_seconds": { "type": "number" },
+                          "download_wav_url": { "type": "string" },
+                          "download_mp3_url": { "type": "string" }
+                        }
+                      }
+                    },
+                    "master_audio": {
+                      "type": "object",
+                      "properties": {
+                        "master_wav": { "type": "string" },
+                        "master_mp3": { "type": "string" },
+                        "duration_seconds": { "type": "number" },
+                        "download_master_wav_url": { "type": "string" },
+                        "download_master_mp3_url": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

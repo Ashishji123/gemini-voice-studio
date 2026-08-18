@@ -1,0 +1,12 @@
+.env
+output/
+uploads/
+__pycache__/
+*.wav
+*.mp3
+*.mp4
+*.pcm
+cloudflared.exe
+active_tunnel_url.txt
+venv/
+
