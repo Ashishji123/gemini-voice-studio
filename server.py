@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 
 from gemini_voice_engine import GeminiVoiceStudio, VOICE_PROFILES, TONE_PRESETS
-from mcp.server.mcpserver import MCPServer
+from mcp.server.fastmcp import FastMCP
 
 load_dotenv()
 
@@ -55,7 +55,7 @@ app.add_middleware(
 )
 
 # ----------------- MCP Server -----------------
-mcp_server = MCPServer("gemini-voice-studio")
+mcp_server = FastMCP("gemini-voice-studio")
 
 @mcp_server.tool()
 def generate_voice(
